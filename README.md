@@ -77,10 +77,11 @@ Most probably you will need to change some parameters according to your particul
 
 Filter bank is required to be built only once. You can build it and then batch process all your files without rebuilding it.
 
-### Known bugs
+### Known issues
 <ul>
   <li>If no noise areas were found, an exception is thrown. I'd just attach a second of silence at the end of each sample to guarantee that there will be some silence.</li>
   <li>attack_release function is very slow. Most probably it can be optimized using numpy convolution.</li>
+  <li>gate_attack and gate_release should be set differently for each frequency band, since higher frequencies tend to change volume quicker.</li>
 </ul>
 
 ### Utility functions
