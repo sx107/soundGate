@@ -4,7 +4,7 @@ This is a simple python script to clear the noise out of audio files and remove 
 Uses librosa, scipy, numpy and matplotlib to plot itermediate results if needed.
 
 ### Usage
-The simplest usage example is provided at the end of the script:
+The simplest usage example is provided at the end of the script. It loads the sound from test/in.wav and outputs the processed signal to test/out.wav.
 
 ```python
 process_sr = 22050
@@ -74,6 +74,14 @@ Load the sound using `librosa.load`, grab the required `channel`, resample it to
 
 ### Tips
 Most probably you will need to change some parameters according to your particular case. I'd start with the nt parameter. If `find_signal()` truncates the voice areas or removes short samples of voice, try increasing `nd_timesmooth` and lowering the `nd_timethreshold`. Set draw to `True` to see what exactly the script does. If the voice sounds muffled sometimes, then, most probably, high frequencies did not pass the gate. Try lowering `nt` or increasing `spread_gate`. You may also want to play with `gate_attack` and `gate_release` parameters - increase `gate_release` if end of phrases are cut out, lower `gate_attack` if phrases beginnings are cut out.
+
+Filter bank is required to be built only once. You can build it and then batch process all your files without rebuilding it.
+
+### Known bugs
+<ul>
+  <li>If no noise areas were found, an exception is thrown. I'd just attach a second of silence at the end of each sample to guarantee that there will be some silence.</li>
+  <li>attack_release function is very slow. Most probably it can be optimized using numpy convolution.</li>
+</ul>
 
 ### Utility functions
 <ul>
