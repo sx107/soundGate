@@ -15,7 +15,7 @@ def gauss_mx(x, m, s):
 def thresh(x, th):
     return np.array(x) > th
 
-def find_signal(smp, sr, nd_softness = 1.0, nd_threshold = 0.1, nd_timesmooth = 0.5, nd_timethreshold = 0.1, draw = False):
+def find_signal(smp, sr, nd_softness = 1.0, nd_threshold = 0.1, nd_timesmooth = 0.2, nd_timethreshold = 0.1, draw = False):
     vv = librosa.onset.onset_strength(smp, sr, n_fft=2048, hop_length=512)
     vv = np.convolve(vv, np.ones(50)/50., mode = 'same')
 
@@ -126,11 +126,12 @@ def attack_release(x, attack, release):
         g.append(c)
     return g
 
-def sound_filtered_gate(smp,  sr, thresholds, gate_filters, spread_gate = 0.05, draw = False, gate_attack = 0.05, gate_release = 0.5):
+def sound_filtered_gate(smp,  sr, thresholds, gate_filters, spread_gate = 0.01, draw = False, gate_attack = 0.05, gate_release = 0.2):
     voice_filtered = apply_gate_filter_bank(smp, gate_filters)
     voice_volume = [signal_volume(v, sr, 0.1) for v in voice_filtered]
     voice_volume_th = [thresh(voice_volume[i], thresholds[i]) for i in range(len(voice_volume))]
-    voice_volume_th = [spread_threshod(v, sr * spread_gate) for v in voice_volume_th]
+    if spread_gate != 0:
+        voice_volume_th = [spread_threshod(v, sr * spread_gate) for v in voice_volume_th]
 
     voice_volume_gate = [attack_release(v, gate_attack * sr, gate_release*sr) for v in voice_volume_th]
 
@@ -147,7 +148,7 @@ def sound_filtered_gate(smp,  sr, thresholds, gate_filters, spread_gate = 0.05, 
 
     return output
 
-def process_sound(ifn, channel=-1, gate_filters = None, process_sr = 22050, output_sr = None, nt = 0.01, no_silence = False, draw=False):
+def process_sound(ifn, channel=-1, gate_filters = None, process_sr = 22050, output_sr = None, nt = 0.8, no_silence = False, draw=False):
     # Create gate filters if they are not passed
     if gate_filters is None:
         gate_filters = build_gate_filter_bank(process_sr, 30, 10000, 10)
@@ -202,15 +203,15 @@ def process_sound(ifn, channel=-1, gate_filters = None, process_sr = 22050, outp
 
 
 process_sr = 22050
-output_sr = 16000
+output_sr = 44100
 
-gate_filters = build_gate_filter_bank(process_sr, 30, 10000, 10)
+gate_filters = build_gate_filter_bank(process_sr, 30, 10000, 20)
 smp = process_sound('test/in.wav',
-              channel = 0,
+              channel = -1,
               gate_filters=gate_filters,
               process_sr=process_sr, output_sr = output_sr,
-              nt = 0.05,
+              nt = 0.6,
               no_silence=True,
-              draw = False)
+              draw = True)
 
 librosa.output.write_wav('test/out.wav', smp, output_sr)
