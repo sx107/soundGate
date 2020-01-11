@@ -72,6 +72,9 @@ The input sample first of all is split into different frequency bands using the 
 #### process_sound()
 Load the sound using `librosa.load`, grab the required `channel`, resample it to `process_sr`. A high-pass filter is then applied to filter out any DC offset and the sound is normalized. The sound sample is then split into noise and voice using `find_signal()`. Both noise and voice are split into different frequency bands, average volume is found for each frequency band. Noise thresholds are then determined as `noise_avg_volume + (voice_avg_volume - noise_avg_volume) * nt` for each frequency band. Finally, the sound is processed using `sound_filtered_gate()` with determined noise thresholds. If `no_silence` is set to `True`, then only areas containing voice (found recently using `find_signal()`) are processed and returned. Before output, the sound is resampled to `output_sr`.
 
+### Tips
+Most probably you will need to change some parameters according to your particular case. I'd start with the nt parameter. If `find_signal()` truncates the voice areas or removes short samples of voice, try increasing `nd_timesmooth` and lowering the `nd_timethreshold`. Set draw to `True` to see what exactly the script does. If the voice sounds muffled sometimes, then, most probably, high frequencies did not pass the gate. Try lowering `nt` or increasing `spread_gate`. You may also want to play with `gate_attack` and `gate_release` parameters - increase `gate_release` if end of phrases are cut out, lower `gate_attack` if phrases beginnings are cut out.
+
 ### Utility functions
 <ul>
   <li>gauss(value, mean, sigma) - gauss function (normalized to 1 on peak)/li>
