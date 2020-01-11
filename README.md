@@ -10,12 +10,12 @@ The simplest usage example is provided at the end of the script. It loads the so
 process_sr = 22050
 output_sr = 16000
 
-gate_filters = build_gate_filter_bank(process_sr, 30, 10000, 10)
+gate_filters = build_gate_filter_bank(process_sr, 30, 10000, 20)
 smp = process_sound('test/in.wav',
-              channel = 0,
+              channel = -1,
               gate_filters=gate_filters,
               process_sr=process_sr, output_sr = output_sr,
-              nt = 0.05,
+              nt = 0.6,
               no_silence=True,
               draw = True)
 
