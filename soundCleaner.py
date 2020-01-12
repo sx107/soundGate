@@ -215,7 +215,7 @@ def sound_filtered_gate(smp,  sr, thresholds,
 def process_sound(ifn, channel=-1,
                   gate_filters = None, gate_filters_freqs = None,
                   process_sr = 22050, output_sr = None,
-                  nt = 0.5, min_threshold_db = 6,
+                  nt = 0.5, min_threshold_db = 6, retain_noise_shape = True,
                   no_silence = False, draw=False):
     # Create gate filters if they are not passed
     if gate_filters is None or gate_filters_freqs is None:
@@ -264,6 +264,8 @@ def process_sound(ifn, channel=-1,
     noise_avg_volume *= min_th
 
     noise_thresholds = noise_avg_volume + np.maximum((voice_avg_volume - noise_avg_volume) * nt, np.zeros(len(gate_filters)))
+    if retain_noise_shape:
+        noise_thresholds = np.max(noise_thresholds / noise_avg_volume) * noise_avg_volume
 
     if draw:
         plt.clf()
@@ -290,13 +292,13 @@ def process_sound(ifn, channel=-1,
 process_sr = 22050
 output_sr = 44100
 
-gate_filters, gate_filters_freqs = build_gate_filter_bank(process_sr, 30, 10000, 30)
+gate_filters, gate_filters_freqs = build_gate_filter_bank(process_sr, 30, 10000, 10)
 
 smp = process_sound('test/in.wav',
               channel = -1,
               gate_filters=gate_filters, gate_filters_freqs = gate_filters_freqs,
               process_sr=process_sr, output_sr = output_sr,
-              nt = 0.5, min_threshold_db=6,
+              nt = 0.2, min_threshold_db=6, retain_noise_shape=True,
               no_silence=True,
               draw = True)
 
