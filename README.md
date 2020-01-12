@@ -48,7 +48,7 @@ librosa.output.write_wav('test/out.wav', smp, output_sr)
       <li>draw - if set to true, this script will draw the original sample waveform along with lines indicating  in which areas each frequency band volume passed the gate.</li>
     </ul> 
   </li>
-  <li><b>process_sound</b>(ifn, channel, gate_filters, process_sr, output_sr, nt, no_silence, draw)<br>
+  <li><b>process_sound</b>(ifn, channel, gate_filters, process_sr, output_sr, nt, min_threshold_db, retain_noise_shape, no_silence, draw)<br>
   Loads the sound ifn, applies a highpass filter, finds noise and voice areas and then processes the sample with the sound_filtered_gate function using automatically found thresholds. Returns an array containing the processed sound. Parameters:
     <ul>
       <li>ifn - input filename.</li>
@@ -58,6 +58,8 @@ librosa.output.write_wav('test/out.wav', smp, output_sr)
       <li>process_sr - processing sample rate</li>
       <li>output_sr - output sample rate. If set to None, the output sample rate will be the same as the input one.</li>
       <li>nt - noise threshold, from 0 to 1. 0 is the noise volume, 1 is the average voice volume.</li>
+      <li>min_threshold_db - noise volume is amplified by this amount of decibels, so that the threshold will be higher.</li>
+      <li>retain_noise_shape - if set to true, then the determined threshold values will have the same spectral form as the noise.</li>
       <li>no_silence - if set to True, only areas containing voice will be processed and returned.</li>
       <li>draw - whether to set the draw to true for previous two functions.</li>
     </ul>
@@ -72,7 +74,7 @@ First of all, using `librosa.onset.onset_strength()` onset volume is found in ea
 The input sample first of all is split into different frequency bands using the provided `gate_filters` filter bank using LR2 filter. For each separate frequency band the volume dependence on time is found using `signal_volume()` with 0.1 second window. This array is then thresholded, with threshold being set by `thresholds` for each frequency band separately. Areas containing `1` are then stretched by `stretch_gate` seconds, and, finally, an attack-release envelope is built for this gate signal using `attack_release()`. Finally, obtained attack-release enveloped are applied to each frequency band (multiplied with them) and all frequency bands are summed back together, which constitutes the output sound.
 
 #### process_sound()
-Load the sound using `librosa.load`, grab the required `channel`, resample it to `process_sr`. A high-pass filter is then applied to filter out any DC offset and the sound is normalized. The sound sample is then split into noise and voice using `find_signal()`. Both noise and voice are split into different frequency bands, average volume is found for each frequency band. Noise volumes are amplified by min_threshold_db decibels. Noise thresholds are then determined as `noise_avg_volume + (voice_avg_volume - noise_avg_volume) * nt` for each frequency band; if voice volume is lower than the noise volume for any frequency band, the noise threshold at that frequency band is then set to the noise volume. Finally, the sound is processed using `sound_filtered_gate()` with determined noise thresholds. If `no_silence` is set to `True`, then only areas containing voice (found recently using `find_signal()`) are processed and returned. Before output, the sound is resampled to `output_sr`.
+Load the sound using `librosa.load`, grab the required `channel`, resample it to `process_sr`. A high-pass filter is then applied to filter out any DC offset and the sound is normalized. The sound sample is then split into noise and voice using `find_signal()`. Both noise and voice are split into different frequency bands, average volume is found for each frequency band. Noise volumes are amplified by min_threshold_db decibels. Noise thresholds are then determined as `noise_avg_volume + (voice_avg_volume - noise_avg_volume) * nt` for each frequency band; if voice volume is lower than the noise volume for any frequency band, the noise threshold at that frequency band is then set to the noise volume. If `retain_noise_shape = True`, then maximum threshold/noise volume ratio is found across all frequency bands and noise threshold is set to noise volume multiplied by that ratio. Finally, the sound is processed using `sound_filtered_gate()` with determined noise thresholds. If `no_silence` is set to `True`, then only areas containing voice (found recently using `find_signal()`) are processed and returned. Before output, the sound is resampled to `output_sr`.
 
 ### Tips
 Most probably you will need to change some parameters according to your particular case. I'd start with the nt parameter. If `find_signal()` truncates the voice areas or removes short samples of voice, try increasing `nd_timesmooth`. Set draw to `True` to see what exactly the script does. If the voice sounds muffled sometimes, then, most probably, high frequencies did not pass the gate. Try lowering `nt` or increasing `spread_gate`. You may also want to play with `gate_attack` and `gate_release` parameters - increase `gate_release` if end of phrases are cut out, lower `gate_attack` if phrases beginnings are cut out.
